@@ -1,0 +1,27 @@
+# secrets
+.env
+.env.local
+.env.*.local
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# runtime output
+data/audit/*.jsonl
+data/latency/*.jsonl
+!data/**/.gitkeep
+
+# os
+.DS_Store
+next-env.d.ts
