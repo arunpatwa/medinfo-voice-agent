@@ -1,0 +1,60 @@
+# Navigation eval fixtures.
+#
+# Each case is a question a doctor or patient might actually ask, plus the slide
+# that should be on screen when it's answered. The session always starts on
+# slide 1, so cases expecting slide 1 accept "no jump" as correct -- not jumping
+# when the current slide already answers the question is the right behaviour.
+#
+# slides: 1 overview | 2 mechanism | 3 dosing | 4 renal | 5 safety | 6 interactions
+
+- q: "What is metformin and who is it for?"
+  slide: 1
+- q: "Is this approved for use in children?"
+  slide: 1
+- q: "What drug class does it belong to?"
+  slide: 1
+
+- q: "How does metformin actually work?"
+  slide: 2
+- q: "Does it make the pancreas release more insulin?"
+  slide: 2
+- q: "What does it do in the liver?"
+  slide: 2
+- q: "Why doesn't it cause hypoglycemia on its own?"
+  slide: 2
+
+- q: "What's the starting dose?"
+  slide: 3
+- q: "How high can you go on the extended release form?"
+  slide: 3
+- q: "Should it be taken with food?"
+  slide: 3
+- q: "How quickly can you titrate the dose upward?"
+  slide: 3
+
+- q: "What about patients with reduced kidney function?"
+  slide: 4
+- q: "At what eGFR do you have to stop it entirely?"
+  slide: 4
+- q: "My patient is having a CT scan with contrast next week. Anything to do?"
+  slide: 4
+- q: "How often should kidney function be checked?"
+  slide: 4
+
+- q: "Is there a boxed warning on this product?"
+  slide: 5
+- q: "Tell me about the lactic acidosis risk."
+  slide: 5
+- q: "Who should absolutely not take this?"
+  slide: 5
+- q: "What are the warning signs of the serious complication?"
+  slide: 5
+
+- q: "Does it interact with topiramate?"
+  slide: 6
+- q: "Do I need to monitor vitamin B12?"
+  slide: 6
+- q: "What are the most common side effects reported?"
+  slide: 6
+- q: "Is it safe to drink alcohol on this?"
+  slide: 6
