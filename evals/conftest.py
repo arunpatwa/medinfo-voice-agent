@@ -21,6 +21,7 @@ load_dotenv(ROOT / ".env")
 
 # The agent modules use flat imports (`from deck import ...`).
 sys.path.insert(0, str(ROOT / "agent" / "src"))
+sys.path.insert(0, str(ROOT / "evals"))
 
 
 @pytest.fixture(scope="session")
@@ -46,12 +47,18 @@ def lexicon() -> list[str]:
 
 
 @pytest.fixture(scope="session")
-def anthropic_client():
-    if not os.getenv("ANTHROPIC_API_KEY"):
-        pytest.skip("ANTHROPIC_API_KEY not set")
-    import anthropic
+def llm():
+    """The configured LLM provider, or a skip if its credential is absent.
 
-    return anthropic.Anthropic()
+    Switch providers with LLM_PROVIDER=anthropic|google. Both run the same
+    assertions, so a provider swap is a test run rather than a rewrite.
+    """
+    from llm_provider import build_provider, missing_key, selected_provider
+
+    provider = selected_provider()
+    if absent := missing_key(provider):
+        pytest.skip(f"{absent} not set (LLM_PROVIDER={provider})")
+    return build_provider(provider)
 
 
 @pytest.fixture(scope="session")
@@ -65,7 +72,9 @@ def deepgram_client():
 
 @pytest.fixture(scope="session")
 def llm_model() -> str:
-    return os.getenv("EVAL_LLM_MODEL") or os.getenv("LLM_MODEL", "claude-opus-5")
+    from llm_provider import selected_model
+
+    return selected_model()
 
 
 def pytest_configure(config: pytest.Config) -> None:
