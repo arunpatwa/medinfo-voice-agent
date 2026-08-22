@@ -1,0 +1,32 @@
+metformin
+metformin hydrochloride
+biguanide
+gluconeogenesis
+hyperinsulinemia
+antihyperglycemic
+lactic acidosis
+metabolic acidosis
+diabetic ketoacidosis
+hypoglycemia
+eGFR
+creatinine clearance
+renal impairment
+hepatic impairment
+iodinated contrast
+hemodialysis
+topiramate
+acetazolamide
+ranolazine
+vandetanib
+dolutegravir
+cimetidine
+sulfonylurea
+secretagogue
+AMP-activated protein kinase
+myalgias
+somnolence
+asthenia
+flatulence
+anion gap
+pyruvate
+cyanocobalamin

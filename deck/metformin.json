@@ -1,0 +1,171 @@
+{
+  "deck_id": "metformin",
+  "title": "Metformin Hydrochloride — Medical Information Brief",
+  "subtitle": "Immediate-release and extended-release oral tablets",
+  "disclaimer": "Illustrative demo content derived from public FDA prescribing information. Not for clinical use. Always consult the current approved label.",
+  "source": "FDA prescribing information, metformin hydrochloride (public label content)",
+  "slides": [
+    {
+      "id": 1,
+      "slug": "overview",
+      "title": "Overview & Indication",
+      "topics": [
+        "what is metformin",
+        "indication",
+        "who is it for",
+        "first line therapy",
+        "type 2 diabetes",
+        "pediatric use",
+        "drug class",
+        "biguanide"
+      ],
+      "bullets": [
+        "Biguanide antihyperglycemic; the most widely prescribed oral agent for type 2 diabetes.",
+        "Indicated as an adjunct to diet and exercise to improve glycemic control in adults and pediatric patients 10 years and older with type 2 diabetes mellitus.",
+        "Available as immediate-release (IR) and extended-release (ER) oral tablets.",
+        "Not indicated for type 1 diabetes; does not replace insulin where insulin is required.",
+        "Does not cause hyperinsulinemia and does not produce hypoglycemia in healthy subjects when used alone."
+      ],
+      "narration": "Metformin is a biguanide antihyperglycemic and the most widely prescribed oral agent for type two diabetes. It's indicated as an adjunct to diet and exercise to improve glycemic control in adults and in pediatric patients aged ten and older with type two diabetes. It comes as immediate-release and extended-release oral tablets. It is not indicated for type one diabetes.",
+      "citation": "Indications and Usage, Section 1"
+    },
+    {
+      "id": 2,
+      "slug": "mechanism",
+      "title": "Mechanism of Action",
+      "topics": [
+        "mechanism",
+        "how does it work",
+        "mode of action",
+        "pharmacology",
+        "AMPK",
+        "gluconeogenesis",
+        "insulin sensitivity",
+        "hepatic glucose production"
+      ],
+      "bullets": [
+        "Decreases hepatic glucose production, primarily by reducing gluconeogenesis.",
+        "Decreases intestinal absorption of glucose.",
+        "Improves insulin sensitivity by increasing peripheral glucose uptake and utilization.",
+        "Associated with activation of AMP-activated protein kinase (AMPK) in hepatocytes.",
+        "Unlike sulfonylureas, it does not stimulate insulin secretion, which is why monotherapy carries minimal hypoglycemia risk."
+      ],
+      "narration": "Metformin works through three main routes. It decreases hepatic glucose production, mainly by reducing gluconeogenesis. It decreases intestinal absorption of glucose. And it improves insulin sensitivity by increasing peripheral glucose uptake and utilization. This is associated with activation of AMP-activated protein kinase in the liver. Importantly, unlike sulfonylureas it does not stimulate insulin secretion, which is why monotherapy carries minimal hypoglycemia risk.",
+      "citation": "Clinical Pharmacology, Section 12.1"
+    },
+    {
+      "id": 3,
+      "slug": "dosing",
+      "title": "Dosing & Titration",
+      "topics": [
+        "dosing",
+        "dose",
+        "how much",
+        "titration",
+        "maximum dose",
+        "starting dose",
+        "immediate release",
+        "extended release",
+        "how to take it",
+        "with food"
+      ],
+      "bullets": [
+        "IR: start 500 mg twice daily or 850 mg once daily, taken with meals.",
+        "IR titration: increase by 500 mg weekly, or 850 mg every two weeks, as tolerated.",
+        "IR maximum: 2550 mg per day in divided doses.",
+        "ER: start 500 mg once daily with the evening meal; titrate by 500 mg weekly; maximum 2000 mg per day.",
+        "Taking doses with food and titrating slowly substantially reduces gastrointestinal intolerance.",
+        "Pediatric (10 years and older, IR): start 500 mg twice daily; maximum 2000 mg per day."
+      ],
+      "narration": "For immediate-release metformin, start at five hundred milligrams twice daily, or eight hundred fifty milligrams once daily, taken with meals. Titrate up by five hundred milligrams weekly, to a maximum of two thousand five hundred fifty milligrams per day in divided doses. For extended-release, start at five hundred milligrams once daily with the evening meal, and titrate to a maximum of two thousand milligrams per day. Taking doses with food and titrating slowly substantially reduces gastrointestinal side effects.",
+      "citation": "Dosage and Administration, Section 2.1"
+    },
+    {
+      "id": 4,
+      "slug": "renal",
+      "title": "Renal Impairment & Dose Adjustment",
+      "topics": [
+        "renal",
+        "kidney",
+        "eGFR",
+        "creatinine clearance",
+        "renal impairment",
+        "kidney function",
+        "reduced kidney function",
+        "contrast imaging",
+        "iodinated contrast",
+        "CKD",
+        "dialysis"
+      ],
+      "bullets": [
+        "Assess eGFR before initiating and at least annually thereafter.",
+        "Contraindicated when eGFR is below 30 mL/min/1.73 m².",
+        "Do not initiate when eGFR is 30 to 45 mL/min/1.73 m².",
+        "If eGFR falls below 45 during therapy, reassess the benefit-risk balance; discontinue if eGFR falls below 30.",
+        "Temporarily discontinue before or at the time of iodinated contrast imaging in patients with eGFR 30–60, a history of hepatic impairment, alcoholism or heart failure, or who will receive intra-arterial contrast.",
+        "Re-evaluate eGFR 48 hours after the imaging procedure and restart only if renal function is stable."
+      ],
+      "narration": "Renal function drives metformin eligibility. Assess e-G-F-R before starting and at least annually after. Metformin is contraindicated when e-G-F-R is below thirty. Do not start it when e-G-F-R is between thirty and forty-five. If e-G-F-R falls below forty-five during therapy, reassess the benefit-risk balance, and discontinue if it falls below thirty. Also temporarily stop metformin before iodinated contrast imaging in at-risk patients, then re-evaluate kidney function forty-eight hours later and restart only if it is stable.",
+      "citation": "Dosage and Administration, Section 2.2; Warnings, Section 5.1"
+    },
+    {
+      "id": 5,
+      "slug": "safety",
+      "title": "Contraindications & Boxed Warning",
+      "topics": [
+        "boxed warning",
+        "black box",
+        "lactic acidosis",
+        "contraindications",
+        "safety",
+        "warnings",
+        "who should not take it",
+        "risks",
+        "acidosis",
+        "ketoacidosis",
+        "hypersensitivity"
+      ],
+      "bullets": [
+        "BOXED WARNING — Lactic acidosis: rare but serious, with high mortality when it occurs.",
+        "Risk factors: renal impairment, concomitant carbonic anhydrase inhibitors, age 65 and older, radiologic studies with contrast, surgery, hypoxic states, excessive alcohol intake, hepatic impairment.",
+        "Presentation is often non-specific: malaise, myalgias, respiratory distress, somnolence, abdominal pain, hypothermia, hypotension.",
+        "Laboratory findings: elevated blood lactate above 5 mmol/L, anion gap acidosis, raised lactate/pyruvate ratio; metformin plasma levels generally above 5 mcg/mL.",
+        "Management: discontinue immediately and institute prompt hemodialysis.",
+        "Contraindications: eGFR below 30; hypersensitivity to metformin; acute or chronic metabolic acidosis, including diabetic ketoacidosis."
+      ],
+      "narration": "Metformin carries a boxed warning for lactic acidosis. It is rare, but it has high mortality when it occurs. Risk factors include renal impairment, concomitant carbonic anhydrase inhibitors, age sixty-five and older, contrast imaging, surgery, hypoxic states, excessive alcohol intake, and hepatic impairment. Presentation is often non-specific: malaise, myalgias, respiratory distress, somnolence, and abdominal pain. If suspected, discontinue immediately and institute prompt hemodialysis. Contraindications are an e-G-F-R below thirty, hypersensitivity to metformin, and acute or chronic metabolic acidosis including diabetic ketoacidosis.",
+      "citation": "Boxed Warning; Contraindications, Section 4"
+    },
+    {
+      "id": 6,
+      "slug": "interactions",
+      "title": "Drug Interactions & Monitoring",
+      "topics": [
+        "interactions",
+        "drug interactions",
+        "monitoring",
+        "vitamin B12",
+        "B12 deficiency",
+        "alcohol",
+        "topiramate",
+        "cimetidine",
+        "labs",
+        "follow up",
+        "side effects",
+        "adverse reactions",
+        "diarrhea",
+        "nausea"
+      ],
+      "bullets": [
+        "Carbonic anhydrase inhibitors (topiramate, acetazolamide) increase lactic acidosis risk — consider more frequent monitoring.",
+        "Drugs that inhibit OCT-mediated renal clearance (ranolazine, vandetanib, dolutegravir, cimetidine) can raise metformin exposure.",
+        "Alcohol potentiates the effect of metformin on lactate metabolism — counsel against excessive intake.",
+        "Insulin and insulin secretagogues used in combination increase hypoglycemia risk; a dose reduction of the secretagogue may be needed.",
+        "Monitoring: eGFR at least annually, more often if at risk; hematologic parameters annually; measure vitamin B12 every 2–3 years.",
+        "Most common adverse reactions: diarrhea, nausea and vomiting, flatulence, asthenia, indigestion, abdominal discomfort, headache."
+      ],
+      "narration": "Several interactions matter. Carbonic anhydrase inhibitors like topiramate increase lactic acidosis risk. Drugs that inhibit renal O-C-T transport, such as cimetidine, ranolazine, and dolutegravir, can raise metformin exposure. Alcohol potentiates the effect on lactate metabolism. And combining metformin with insulin or a secretagogue raises hypoglycemia risk. For monitoring, check e-G-F-R at least annually, hematologic parameters annually, and vitamin B twelve every two to three years. The most common adverse reactions are diarrhea, nausea and vomiting, flatulence, asthenia, indigestion, and headache.",
+      "citation": "Drug Interactions, Section 7; Adverse Reactions, Section 6"
+    }
+  ]
+}
