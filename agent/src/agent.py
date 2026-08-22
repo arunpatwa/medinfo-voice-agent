@@ -22,10 +22,11 @@ from livekit.agents import (
     cli,
     inference,
 )
-from livekit.plugins import anthropic, deepgram
+from livekit.plugins import deepgram
 
 from audit import AuditLog
 from deck import lexicon, load_deck
+from llm_provider import build_llm, model_name, provider_name
 from medinfo_agent import MedInfoAgent
 from prompts import GREETING
 from rpc import RpcBridge
@@ -80,7 +81,8 @@ async def medinfo_session(ctx: JobContext) -> None:
     audit = AuditLog(session_id=session_id, room=ctx.room.name)
     telemetry = Telemetry(session_id=session_id, rpc=rpc)
 
-    llm_model = os.getenv("LLM_MODEL", "claude-opus-5")
+    llm_provider = provider_name()
+    llm_model = model_name(llm_provider)
     tts_model = os.getenv("TTS_MODEL", "aura-2-asteria-en")
 
     session = AgentSession(
@@ -114,16 +116,7 @@ async def medinfo_session(ctx: JobContext) -> None:
         deck=deck,
         rpc=rpc,
         audit=audit,
-        llm=anthropic.LLM(
-            model=llm_model,
-            # Caches the system prompt (which carries the whole deck), the tool
-            # schemas, and the chat history. Cuts both cost and time-to-first-
-            # token on every turn after the first.
-            caching="ephemeral",
-            # Voice answers must be short. A wall of text is a UX bug here, and
-            # a hard cap is cheaper than trusting the prompt alone.
-            max_tokens=400,
-        ),
+        llm=build_llm(),
     )
 
     # ------------------------------------------------------------ telemetry
@@ -174,6 +167,7 @@ async def medinfo_session(ctx: JobContext) -> None:
     audit.record(
         "session_start",
         deck_id=deck.deck_id,
+        llm_provider=llm_provider,
         llm_model=llm_model,
         stt_model=os.getenv("STT_MODEL", "nova-3"),
         tts_model=tts_model,
