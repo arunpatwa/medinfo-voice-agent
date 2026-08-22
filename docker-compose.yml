@@ -1,0 +1,58 @@
+# Three services, deliberately separate.
+#
+# The agent worker is long-lived and scales on concurrent voice sessions; the API
+# is stateless and scales on request volume; the web app is a static-ish
+# frontend. In production these are three ECS services with three different
+# autoscaling policies, which is why they aren't one process here.
+#
+# `data/` is a shared volume so the API can read the audit and latency JSONL the
+# agent writes. In a real deployment this would be S3 or a database.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      CORS_ORIGINS: http://localhost:3000
+    volumes:
+      - ./data:/app/data
+      - ./deck:/app/deck:ro
+    restart: unless-stopped
+
+  agent:
+    build:
+      context: .
+      dockerfile: agent/Dockerfile
+    env_file:
+      - .env
+    environment:
+      API_BASE_URL: http://api:8000
+      LOG_LEVEL: INFO
+    volumes:
+      - ./data:/app/data
+      - ./deck:/app/deck:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+      args:
+        # Baked into the client bundle at build time (see web/Dockerfile).
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+        NEXT_PUBLIC_DECK_ID: ${DECK_ID:-metformin}
+    ports:
+      - "3000:3000"
+    environment:
+      LIVEKIT_URL: ${LIVEKIT_URL}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      AGENT_NAME: ${AGENT_NAME:-medinfo-agent}
+    depends_on:
+      - api
+    restart: unless-stopped
