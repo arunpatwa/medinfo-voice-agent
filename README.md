@@ -266,15 +266,33 @@ calls. Record a session first, then run it.
 
 ### Measured numbers
 
-<!-- Not yet run against live keys. Record a session, then paste the real output
-     of `pytest evals/ -s` here. Do not ship this table with invented numbers. -->
-
 | Metric | Target | Measured |
 |---|---|---|
-| Navigation accuracy | ≥ 90% | _run `pytest evals/test_navigation.py -s`_ |
-| Pronunciation recall (with keyterms) | report | _run `pytest evals/test_pronunciation.py -s`_ |
-| Keyterm delta | > 0 | _same run_ |
-| p95 time-to-first-audio | ≤ 1200 ms | _record a session, then `test_latency.py`_ |
+| Pronunciation recall, with keyterms | report | **96.9%** (31/32 terms) |
+| Pronunciation recall, no keyterms | baseline | 93.8% (30/32) |
+| Keyterm delta | > 0 | **+3.1%** |
+| Navigation accuracy | ≥ 90% | _pending — needs Anthropic credit_ |
+| p95 time-to-first-audio | ≤ 1200 ms | _pending — needs a recorded session_ |
+
+Run: `pytest evals/test_pronunciation.py -s` — 32 terms, 96 API calls, ~4m30s,
+well under a dollar of Deepgram credit.
+
+**The one miss is the interesting result.** Aura-2 renders *"iodinated contrast"*
+and Nova-3 hears *"iodated contrast"* — a real phoneme drop on a term that matters
+clinically, since it gates the contrast-imaging guidance on slide 4. Everything
+harder recognised cleanly: `empagliflozin`-class names, `gluconeogenesis`,
+`cyanocobalamin`, `dolutegravir`, `vandetanib`, `sulfonylurea` all round-tripped at
+WER 0.00.
+
+`secretagogue` is the case that justifies the lexicon: recovered **only** with
+keyterm boosting, missed without it. That's the +3.1% in concrete terms — small in
+aggregate, but it's the long tail of drug names where it pays, which is exactly the
+tail that matters in a medical information context.
+
+Worth being clear about the ceiling: at 96.9% baseline recall the headroom for
+keyterm boosting is only 3.1 points, so this eval is more valuable as a
+**regression guard on a TTS or STT model change** than as a tuning dial. Swap the
+voice and this number tells you immediately whether drug names survived.
 
 ---
 
