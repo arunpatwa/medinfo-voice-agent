@@ -36,62 +36,71 @@ def _chosen_slide(reply) -> int | None:
 
 
 def _ask(llm, question: str, instructions: str):
+    # resolve_tools=False keeps this to one API call per question: navigation
+    # asserts on the tool call itself, so the spoken follow-up leg adds cost
+    # without adding signal. The guardrail suite does need it.
     return llm.ask(
         system=instructions,
         user=f"[Currently showing slide {STARTING_SLIDE}.] {question}",
         tools=[GOTO_SLIDE],
+        resolve_tools=False,
+    )
+
+
+def _is_correct(expected: int, chosen: int | None) -> bool:
+    if expected == STARTING_SLIDE:
+        # Staying put is correct when the current slide already answers it.
+        return chosen in (None, STARTING_SLIDE)
+    return chosen == expected
+
+
+@pytest.fixture(scope="module")
+def results(llm, instructions) -> list[dict]:
+    """Run every fixture question exactly once.
+
+    Module-scoped on purpose: the per-case test and the aggregate report both
+    read from this, so the suite makes N calls rather than 2N. That matters on a
+    rate-limited free tier, where the duplicate sweep was most of the cost.
+    """
+    out = []
+    for case in _cases():
+        chosen = _chosen_slide(_ask(llm, case["q"], instructions))
+        out.append(
+            {
+                "q": case["q"],
+                "expected": case["slide"],
+                "chosen": chosen,
+                "ok": _is_correct(case["slide"], chosen),
+            }
+        )
+    return out
+
+
+@pytest.mark.costly
+@pytest.mark.parametrize(
+    "index", range(len(_cases())), ids=lambda i: _cases()[i]["q"][:45]
+)
+def test_navigation_case(index, results, record_property):
+    row = results[index]
+    record_property("expected", row["expected"])
+    record_property("chosen", row["chosen"])
+    assert row["ok"], (
+        f"{row['q']!r}\n  expected slide {row['expected']}, model chose {row['chosen']}"
     )
 
 
 @pytest.mark.costly
-@pytest.mark.parametrize("case", _cases(), ids=lambda c: c["q"][:45])
-def test_navigation_case(case, llm, instructions, llm_model, record_property):
-    expected = case["slide"]
-    chosen = _chosen_slide(_ask(llm, case["q"], instructions))
-
-    record_property("expected", expected)
-    record_property("chosen", chosen)
-
-    if expected == STARTING_SLIDE:
-        # Staying put is correct when the current slide already answers it.
-        assert chosen in (None, STARTING_SLIDE), (
-            f"expected to stay on slide {STARTING_SLIDE} or jump to it, got {chosen}"
-        )
-    else:
-        assert chosen == expected, (
-            f"{case['q']!r}\n  expected slide {expected}, model chose {chosen}"
-        )
-
-
-@pytest.mark.costly
-def test_navigation_accuracy(llm, instructions, llm_model, capsys):
-    """Aggregate accuracy across all fixtures, with a per-case report.
-
-    The parametrised test above tells you *which* cases fail; this one is the
-    single number to put in the README.
-    """
-    cases = _cases()
-    rows, correct = [], 0
-
-    for case in cases:
-        chosen = _chosen_slide(_ask(llm, case["q"], instructions))
-        expected = case["slide"]
-        ok = (
-            chosen in (None, STARTING_SLIDE)
-            if expected == STARTING_SLIDE
-            else chosen == expected
-        )
-        correct += ok
-        rows.append((ok, expected, chosen, case["q"]))
-
-    accuracy = correct / len(cases)
+def test_navigation_accuracy(results, llm, llm_model, capsys):
+    """The single number to put in the README."""
+    correct = sum(r["ok"] for r in results)
+    accuracy = correct / len(results)
 
     with capsys.disabled():
-        print(f"\n  navigation accuracy: {correct}/{len(cases)} = {accuracy:.1%}")
+        print(f"\n  navigation accuracy: {correct}/{len(results)} = {accuracy:.1%}")
         print(f"  provider: {llm.name}  model: {llm_model}\n")
-        for ok, expected, chosen, q in rows:
-            if not ok:
-                print(f"    MISS  want {expected} got {chosen}  {q}")
+        for r in results:
+            if not r["ok"]:
+                print(f"    MISS  want {r['expected']} got {r['chosen']}  {r['q']}")
 
     assert accuracy >= PASS_THRESHOLD, (
         f"navigation accuracy {accuracy:.1%} below {PASS_THRESHOLD:.0%} threshold"
