@@ -53,7 +53,7 @@ def llm():
     Switch providers with LLM_PROVIDER=anthropic|google. Both run the same
     assertions, so a provider swap is a test run rather than a rewrite.
     """
-    from llm_provider import build_provider, missing_key, selected_provider
+    from eval_llm import build_provider, missing_key, selected_provider
 
     provider = selected_provider()
     if absent := missing_key(provider):
@@ -72,7 +72,7 @@ def deepgram_client():
 
 @pytest.fixture(scope="session")
 def llm_model() -> str:
-    from llm_provider import selected_model
+    from eval_llm import selected_model
 
     return selected_model()
 

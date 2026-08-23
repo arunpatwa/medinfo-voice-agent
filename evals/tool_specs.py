@@ -1,7 +1,7 @@
 """Provider-neutral tool specs shared by the eval suites.
 
 Deliberately plain JSON Schema rather than a provider SDK type, so the same
-definition can be handed to Claude or Gemini. evals/llm_provider.py does the
+definition can be handed to Claude or Gemini. evals/eval_llm.py does the
 per-provider conversion.
 
 These mirror the @function_tool signatures in agent/src/medinfo_agent.py. If
