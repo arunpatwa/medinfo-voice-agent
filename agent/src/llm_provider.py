@@ -26,8 +26,31 @@ MAX_OUTPUT_TOKENS = 400
 
 DEFAULT_MODELS = {
     "anthropic": "claude-opus-5",
-    "google": "gemini-2.5-flash",
+    "google": "gemini-3.5-flash",
 }
+
+
+def _thinking_config(model: str):
+    """ThinkingConfig appropriate to the model generation, or None.
+
+    The two knobs are not interchangeable and each generation rejects the other:
+
+      * Gemini 2.5  -> thinking_budget (an int). thinking_level returns 400.
+      * Gemini 3.x  -> thinking_level ("LOW"/"MEDIUM"/"HIGH").
+                       thinking_budget returns 400.
+
+    Voice turns want shallow reasoning, so the default is the cheapest setting
+    each generation offers. GEMINI_THINKING_LEVEL=off omits the config entirely.
+    """
+    from google.genai import types
+
+    level = os.getenv("GEMINI_THINKING_LEVEL", "LOW").strip().upper()
+    if level in ("OFF", "", "DEFAULT"):
+        return None
+    if model.startswith("gemini-2"):
+        budget = 0 if level == "LOW" else int(os.getenv("GEMINI_THINKING_BUDGET", "1024"))
+        return types.ThinkingConfig(thinking_budget=budget)
+    return types.ThinkingConfig(thinking_level=level)
 
 
 def provider_name() -> str:
@@ -68,17 +91,22 @@ def build_llm():
             max_tokens=MAX_OUTPUT_TOKENS,
         )
 
-    from google.genai import types
     from livekit.plugins import google
 
-    # Gemini 2.5 models think by default, which is latency this budget cannot
-    # absorb on every conversational turn. thinking_budget=0 disables it --
-    # a control the Anthropic plugin does not expose (see README).
-    budget = int(os.getenv("GEMINI_THINKING_BUDGET", "0"))
-    logger.info("LLM: google %s (thinking_budget=%d)", model, budget)
-    return google.LLM(
-        model=model,
-        temperature=0.6,
-        max_output_tokens=MAX_OUTPUT_TOKENS,
-        thinking_config=types.ThinkingConfig(thinking_budget=budget),
+    # Gemini models reason by default, which is latency a voice turn cannot
+    # absorb. Note the Anthropic plugin exposes no equivalent control at all
+    # (see README, "Model choice") -- this knob exists on one provider only.
+    thinking = _thinking_config(model)
+    logger.info(
+        "LLM: google %s (thinking_level=%s)",
+        model,
+        getattr(thinking, "thinking_level", "model default"),
     )
+    kwargs = {
+        "model": model,
+        "temperature": 0.6,
+        "max_output_tokens": MAX_OUTPUT_TOKENS,
+    }
+    if thinking is not None:
+        kwargs["thinking_config"] = thinking
+    return google.LLM(**kwargs)
