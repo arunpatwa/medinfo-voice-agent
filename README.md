@@ -318,10 +318,62 @@ Measured on `gemini-3.5-flash-lite` + Deepgram Nova-3 / Aura-2.
 | Pronunciation recall, with keyterms | report | **96.9%** (31/32) |
 | Pronunciation recall, no keyterms | baseline | 93.8% (30/32) |
 | Keyterm delta | > 0 | **+3.1%** |
-| p95 time-to-first-audio | ≤ 1200 ms | _pending — needs a recorded session_ |
+| p95 time-to-first-audio | ≤ 1200 ms | **3787 ms — misses budget** (see below) |
+| Interruption truncation | prefix of full reply | **verified** (15 of 76 words retained) |
 
 Full LLM suite: 34 passed in 2m44s, including three transparent rate-limit
 retries. Navigation alone is 38s.
+
+### Live session: what the latency budget actually did
+
+29-turn conversation, 16 measured turns, 6 interruptions.
+
+| Hop | Median |
+|---|---|
+| end of turn detection | 470 ms |
+| transcription | 212 ms |
+| **LLM first token** | **1349 ms** |
+| TTS first byte | 359 ms |
+| **total (p50 / p95)** | **2520 / 3787 ms** |
+
+The budget is missed by 3x and the LLM leg is over half of it. Two contributing
+causes, only one of which is a code problem:
+
+**Geography.** The worker registered in LiveKit's India South region while
+Deepgram and Gemini are US-hosted, so every hop pays a transcontinental round
+trip. Co-locating the worker with the model provider is the first thing to fix,
+and it costs no code.
+
+**Prompt size vs. `flash-lite`.** ~3.5K prompt tokens per turn against the
+cheapest model in the family. Gemini reported `cached_tokens: 0` on every turn,
+so the deck is being re-read in full each time — the Anthropic path's
+`caching="ephemeral"` has no Gemini equivalent wired up here. Explicit context
+caching would cut the LLM leg materially.
+
+Worth being honest about what this means: `preemptive_generation` hides some of
+this in practice (generation starts before end-of-turn is confirmed, so perceived
+latency is better than the sum suggests), but 2.5s median to first audio is still
+slower than a person expects in conversation.
+
+### Interruption truncation — verified
+
+The behaviour I could not confirm without a live session now has evidence. Turn 13
+was cut off after 15 words; the same answer spoken in full at turn 3 runs 76 words,
+and the truncated record is a **strict prefix** of it:
+
+```
+turn 3  (complete)    "Renal function drives metformin eligibility. Assess e-G-F-R
+                       before starting and at least annually after. Metformin is
+                       contraindicated when e-G-F-R is below thirty. ..."   [76 words]
+
+turn 13 (interrupted) "Renal function drives metformin eligibility. Assess e-G-F-R
+                       before starting and at least annually after. Metformin"  [15 words]
+```
+
+Four of the six interrupted turns end mid-sentence ("Because you are", "Is there
+anything else you"), which is what correct truncation looks like — the transcript
+records what was *heard*, not what was generated. The model is therefore never
+reasoning from words the user never received.
 
 Run: `pytest evals/test_pronunciation.py -s` — 32 terms, 96 API calls, ~4m30s,
 well under a dollar of Deepgram credit.
