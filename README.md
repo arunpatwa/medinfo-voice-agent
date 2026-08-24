@@ -3,8 +3,7 @@
 A voice agent that presents a six-slide medical information brief, jumps to whichever
 slide answers your question, and can be cut off mid-sentence.
 
-Built for the Synthio Labs take-home. Stack matches theirs: **Python** agent worker on
-**LiveKit** with **Deepgram** STT/TTS, **Gemini or Claude** as the brain (swappable by
+**Python** agent worker on **LiveKit** with **Deepgram** STT/TTS, **Gemini or Claude** as the brain (swappable by
 env var), **React/TypeScript** frontend, everything containerised.
 
 ---
@@ -323,6 +322,10 @@ Measured on `gemini-3.5-flash-lite` + Deepgram Nova-3 / Aura-2.
 
 Full LLM suite: 34 passed in 2m44s, including three transparent rate-limit
 retries. Navigation alone is 38s.
+
+A second 10-turn session measured a better median — p50 1737 ms — but with one
+9.0 s outlier, so p95 was worse. The numbers below come from the larger 16-turn
+sample; treat the spread as the honest picture rather than either single figure.
 
 ### Live session: what the latency budget actually did
 
