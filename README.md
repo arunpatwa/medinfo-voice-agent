@@ -494,3 +494,9 @@ config change by design, but untested config is a hypothesis.
   no rate limiting. All fine for a demo, none of it fine for production.
 - **Deck content is illustrative**, derived from public FDA labelling for metformin.
   Not for clinical use.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
