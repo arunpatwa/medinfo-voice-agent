@@ -1,8 +1,8 @@
 """The agent itself: instructions plus the two tools that drive the UI.
 
-`goto_slide` is the mechanism behind the brief's "automatically change slides
-based on the user's question" requirement -- Claude decides, the tool pushes an
-RPC, and the browser re-renders while the spoken answer is still streaming.
+`goto_slide` is what makes slides follow the conversation instead of a clicker:
+the model decides, the tool pushes an RPC, and the browser re-renders while the
+spoken answer is still streaming.
 
 `flag_adverse_event` exists because pharmacovigilance reporting is a legal
 obligation on a 24-hour clock; any real pharma voice agent needs this path.

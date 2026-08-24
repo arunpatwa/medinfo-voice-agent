@@ -1,6 +1,7 @@
 """Voice eval: pronunciation of complex medical terms (FR-11).
 
-This is the eval the JD actually names. The loop is a round-trip:
+Pronunciation of domain vocabulary is the failure mode a WER score hides, so this
+suite measures it directly. The loop is a round-trip:
 
     term -> Aura-2 TTS -> audio -> Nova-3 STT -> transcript -> compare
 

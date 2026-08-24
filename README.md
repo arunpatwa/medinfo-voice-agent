@@ -253,8 +253,10 @@ anthropic 0.x. It went unnoticed because nothing had ever constructed the LLM.
 
 ## Evals
 
-The JD names evals twice, including *"voice evals (for pronunciation of complex
-medical terms)"*. Four suites, all skipping cleanly without keys:
+Evals are the part of this project I most wanted to practise, because a voice
+agent has failure modes that a unit test cannot see — a mangled drug name, a
+refusal that reads compliant but isn't, a latency regression nobody notices.
+Four suites, all skipping cleanly without keys:
 
 ```bash
 .venv/bin/pytest                              # everything
@@ -459,8 +461,9 @@ logging broke.
 
 ## On-prem path
 
-The JD calls out *"modular and works in cloud or fully on-prem"*. Providers sit
-behind the LiveKit plugin interfaces, so the swaps are config, not surgery:
+Healthcare deployments often cannot send audio to a third-party cloud at all, so
+I wanted the provider boundary to be a config line rather than a rewrite.
+Providers sit behind the LiveKit plugin interfaces, so the swaps are exactly that:
 Deepgram STT → `faster-whisper`, Aura-2 → Piper or Kokoro, LiveKit Cloud →
 self-hosted LiveKit (it's open source, and self-hosting also drops the cloud
 dependency entirely). The deck and audit trail are already plain files on a volume,

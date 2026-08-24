@@ -29,7 +29,7 @@ AUDIT_DIR = Path(os.getenv("AUDIT_DIR") or _ROOT / "data" / "audit")
 LATENCY_DIR = Path(os.getenv("LATENCY_DIR") or _ROOT / "data" / "latency")
 
 app = FastAPI(
-    title="Synthio MedInfo Control Plane",
+    title="MedInfo Voice Control Plane",
     description="Deck delivery and audit trail for the voice slide agent.",
     version="0.1.0",
 )
