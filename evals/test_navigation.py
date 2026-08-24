@@ -1,12 +1,15 @@
 """Navigation accuracy eval (FR-11).
 
-Does Claude pick the right slide for a real question? This exercises exactly the
+Does the model pick the right slide for a real question? This exercises exactly the
 contract the live agent depends on -- same system prompt, same tool schema --
 but with no audio, so it runs in seconds and costs cents.
 
-Note this eval CAN configure thinking and effort, because it calls the Anthropic
-SDK directly. The LiveKit plugin cannot (see README, "Model choice"), which is
-why the live agent and this eval are not perfectly equivalent.
+Runs against whichever provider LLM_PROVIDER selects, so Claude and Gemini are
+compared by the same assertions rather than by feel.
+
+Note this eval configures reasoning depth directly through the vendor SDK. The
+live agent cannot do that on every provider (see README, "Model choice"), so eval
+and agent latency are not directly comparable.
 """
 
 from __future__ import annotations
@@ -16,119 +19,88 @@ from pathlib import Path
 import pytest
 import yaml
 
+from tool_specs import GOTO_SLIDE
+
 FIXTURES = Path(__file__).parent / "fixtures" / "navigation.yaml"
 STARTING_SLIDE = 1
 PASS_THRESHOLD = 0.90
-
-GOTO_SLIDE_TOOL = {
-    "name": "goto_slide",
-    "description": (
-        "Change the slide the user is looking at. Call this whenever the user's "
-        "question is better answered on a different slide than the one currently "
-        "displayed. Do not call it if the current slide already covers the question."
-    ),
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "slide_id": {
-                "type": "integer",
-                "description": "The slide to display. Valid values are 1 through 6.",
-            },
-            "reason": {
-                "type": "string",
-                "description": "Short phrase naming the topic that triggered the jump.",
-            },
-        },
-        "required": ["slide_id", "reason"],
-        "additionalProperties": False,
-    },
-    "strict": True,
-}
-
 
 def _cases() -> list[dict]:
     return yaml.safe_load(FIXTURES.read_text(encoding="utf-8"))
 
 
-def _chosen_slide(response) -> int | None:
+def _chosen_slide(reply) -> int | None:
     """The slide_id from the goto_slide call, or None if the model didn't jump."""
-    for block in response.content:
-        if getattr(block, "type", None) == "tool_use" and block.name == "goto_slide":
-            return block.input.get("slide_id")
-    return None
+    value = reply.arg("goto_slide", "slide_id")
+    return int(value) if value is not None else None
 
 
-def _ask(client, model: str, instructions: str, question: str):
-    return client.messages.create(
-        model=model,
-        max_tokens=1024,
+def _ask(llm, question: str, instructions: str):
+    # resolve_tools=False keeps this to one API call per question: navigation
+    # asserts on the tool call itself, so the spoken follow-up leg adds cost
+    # without adding signal. The guardrail suite does need it.
+    return llm.ask(
         system=instructions,
-        tools=[GOTO_SLIDE_TOOL],
-        thinking={"type": "adaptive"},
-        # Slide routing is a shallow decision; low effort keeps the eval fast
-        # and cheap without measurably hurting accuracy.
-        output_config={"effort": "low"},
-        messages=[
+        user=f"[Currently showing slide {STARTING_SLIDE}.] {question}",
+        tools=[GOTO_SLIDE],
+        resolve_tools=False,
+    )
+
+
+def _is_correct(expected: int, chosen: int | None) -> bool:
+    if expected == STARTING_SLIDE:
+        # Staying put is correct when the current slide already answers it.
+        return chosen in (None, STARTING_SLIDE)
+    return chosen == expected
+
+
+@pytest.fixture(scope="module")
+def results(llm, instructions) -> list[dict]:
+    """Run every fixture question exactly once.
+
+    Module-scoped on purpose: the per-case test and the aggregate report both
+    read from this, so the suite makes N calls rather than 2N. That matters on a
+    rate-limited free tier, where the duplicate sweep was most of the cost.
+    """
+    out = []
+    for case in _cases():
+        chosen = _chosen_slide(_ask(llm, case["q"], instructions))
+        out.append(
             {
-                "role": "user",
-                "content": (
-                    f"[Currently showing slide {STARTING_SLIDE}.] {question}"
-                ),
+                "q": case["q"],
+                "expected": case["slide"],
+                "chosen": chosen,
+                "ok": _is_correct(case["slide"], chosen),
             }
-        ],
+        )
+    return out
+
+
+@pytest.mark.costly
+@pytest.mark.parametrize(
+    "index", range(len(_cases())), ids=lambda i: _cases()[i]["q"][:45]
+)
+def test_navigation_case(index, results, record_property):
+    row = results[index]
+    record_property("expected", row["expected"])
+    record_property("chosen", row["chosen"])
+    assert row["ok"], (
+        f"{row['q']!r}\n  expected slide {row['expected']}, model chose {row['chosen']}"
     )
 
 
 @pytest.mark.costly
-@pytest.mark.parametrize("case", _cases(), ids=lambda c: c["q"][:45])
-def test_navigation_case(case, anthropic_client, instructions, llm_model, record_property):
-    expected = case["slide"]
-    response = _ask(anthropic_client, llm_model, instructions, case["q"])
-    chosen = _chosen_slide(response)
-
-    record_property("expected", expected)
-    record_property("chosen", chosen)
-
-    if expected == STARTING_SLIDE:
-        # Staying put is correct when the current slide already answers it.
-        assert chosen in (None, STARTING_SLIDE), (
-            f"expected to stay on slide {STARTING_SLIDE} or jump to it, got {chosen}"
-        )
-    else:
-        assert chosen == expected, (
-            f"{case['q']!r}\n  expected slide {expected}, model chose {chosen}"
-        )
-
-
-@pytest.mark.costly
-def test_navigation_accuracy(anthropic_client, instructions, llm_model, capsys):
-    """Aggregate accuracy across all fixtures, with a per-case report.
-
-    The parametrised test above tells you *which* cases fail; this one is the
-    single number to put in the README.
-    """
-    cases = _cases()
-    rows, correct = [], 0
-
-    for case in cases:
-        chosen = _chosen_slide(_ask(anthropic_client, llm_model, instructions, case["q"]))
-        expected = case["slide"]
-        ok = (
-            chosen in (None, STARTING_SLIDE)
-            if expected == STARTING_SLIDE
-            else chosen == expected
-        )
-        correct += ok
-        rows.append((ok, expected, chosen, case["q"]))
-
-    accuracy = correct / len(cases)
+def test_navigation_accuracy(results, llm, llm_model, capsys):
+    """The single number to put in the README."""
+    correct = sum(r["ok"] for r in results)
+    accuracy = correct / len(results)
 
     with capsys.disabled():
-        print(f"\n  navigation accuracy: {correct}/{len(cases)} = {accuracy:.1%}")
-        print(f"  model: {llm_model}\n")
-        for ok, expected, chosen, q in rows:
-            if not ok:
-                print(f"    MISS  want {expected} got {chosen}  {q}")
+        print(f"\n  navigation accuracy: {correct}/{len(results)} = {accuracy:.1%}")
+        print(f"  provider: {llm.name}  model: {llm_model}\n")
+        for r in results:
+            if not r["ok"]:
+                print(f"    MISS  want {r['expected']} got {r['chosen']}  {r['q']}")
 
     assert accuracy >= PASS_THRESHOLD, (
         f"navigation accuracy {accuracy:.1%} below {PASS_THRESHOLD:.0%} threshold"

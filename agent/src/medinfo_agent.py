@@ -61,6 +61,21 @@ class MedInfoAgent(Agent):
             return f"No slide {slide_id} exists. Valid slides are {valid}. Stay on the current slide."
 
         previous = self.current_slide
+
+        # The prompt tells the model not to call this when the current slide
+        # already answers the question, but a live session showed 4 of 11 calls
+        # were no-ops (N->N). Rather than fight the prompt, absorb it here: skip
+        # the RPC round-trip and tell the model plainly where it already is.
+        if slide_id == previous:
+            self._audit.record(
+                "slide_noop", slide=slide_id, slide_slug=slide.slug, reason=reason
+            )
+            logger.info("goto_slide %s was already displayed (%s)", slide_id, reason)
+            return (
+                f"Slide {slide_id}: {slide.title} is already on screen. "
+                "Answer from this slide's content without changing slides."
+            )
+
         self.current_slide = slide_id
         await self._rpc.goto_slide(slide_id, reason, slide.citation)
         self._audit.record(

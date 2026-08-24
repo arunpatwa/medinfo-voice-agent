@@ -34,6 +34,26 @@ _FIELD_CANDIDATES: dict[str, tuple[str, ...]] = {
     "cached_tokens": ("prompt_cached_tokens", "cache_read_input_tokens"),
 }
 
+# Which stage owns which logical field. Without this, a blanket merge lets later
+# stages clobber earlier ones: TTSMetrics and STTMetrics both expose
+# prompt_tokens/completion_tokens as 0, which overwrote the LLM's real counts and
+# left token accounting reading zero for the whole session. Ownership is explicit
+# so each number comes from the stage that actually measured it.
+STAGE_FIELDS: dict[str, frozenset[str]] = {
+    "EOUMetrics": frozenset({"end_of_utterance_ms", "transcription_ms"}),
+    "LLMMetrics": frozenset(
+        {
+            "llm_ttft_ms",
+            "llm_duration_ms",
+            "prompt_tokens",
+            "completion_tokens",
+            "cached_tokens",
+        }
+    ),
+    "TTSMetrics": frozenset({"tts_ttfb_ms", "audio_duration_ms"}),
+    "STTMetrics": frozenset({"audio_duration_ms"}),
+}
+
 # Which measurements are seconds in the SDK and need scaling to milliseconds.
 _SECONDS_FIELDS = {
     "end_of_utterance_ms",
@@ -88,13 +108,23 @@ class Telemetry:
             )
             self._logged_raw = True
 
+        stage = type(metrics).__name__
         extracted = _extract(metrics)
         if not extracted:
             return
-        self._turn.setdefault("stages", []).append(
-            {"stage": type(metrics).__name__, **extracted}
-        )
-        self._turn.update(extracted)
+
+        # Keep the full per-stage detail for debugging...
+        self._turn.setdefault("stages", []).append({"stage": stage, **extracted})
+
+        # ...but promote only the fields this stage owns. An unknown stage may
+        # fill gaps, never overwrite a value another stage already supplied.
+        owned = STAGE_FIELDS.get(stage)
+        for key, value in extracted.items():
+            if owned is not None:
+                if key in owned:
+                    self._turn[key] = value
+            elif key not in self._turn:
+                self._turn[key] = value
 
     async def flush(self, turn: int, **extra: Any) -> dict[str, Any]:
         """Write the accumulated turn record and push it to the HUD."""

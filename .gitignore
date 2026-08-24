@@ -25,3 +25,12 @@ data/latency/*.jsonl
 # os
 .DS_Store
 next-env.d.ts
+
+# screen recordings / demo media (large binaries — link them, don't commit them)
+*.mkv
+*.mp4
+*.webm
+*.m4a
+
+# archived session logs
+data/_archive/

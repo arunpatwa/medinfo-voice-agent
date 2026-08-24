@@ -31,6 +31,9 @@ services:
     environment:
       API_BASE_URL: http://api:8000
       LOG_LEVEL: INFO
+      # Provider and keys come from .env via env_file above; these only set
+      # defaults if .env leaves them blank.
+      LLM_PROVIDER: ${LLM_PROVIDER:-google}
     volumes:
       - ./data:/app/data
       - ./deck:/app/deck:ro
